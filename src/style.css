@@ -1,0 +1,14 @@
+body {
+    font-family: "avenir next", Arial, sans-serif;
+    font-size: 12px;
+    color: #696969;
+    margin: 0;
+}
+
+.axis path, .axis line {
+    stroke: darkgrey;
+}
+
+.hist.label {
+    font-size: 10px;
+}

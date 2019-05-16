@@ -31,7 +31,8 @@ d3.csv("players.csv", function (d) {
   d.Age = _calculateAge(d.DoB);
   return d;
 }).then(function (data) {
-  console.log(data);
+
+  x.domain(d3.extent(data, function (d) { return d.Games; }));
 
   // Define histogram.
   var histogram = d3.histogram()
@@ -55,7 +56,7 @@ d3.csv("players.csv", function (d) {
   // Calculate max for each team.
   var teamMax = teams.map(function (d) {
     return {
-      region: d.key,
+      team: d.key,
       max: d3.max(d.values, function (s) {
         return s.length;
       })
@@ -63,7 +64,49 @@ d3.csv("players.csv", function (d) {
   })
 
   // Set domains.
-  x.domain(d3.extent(data, function (d) { return d.Games; }));
   y.domain([0, d3.max(teamMax, function (d) { return d.max; })]);
+
+  // for each region, set up a svg with axis and label
+  var svg = d3.select("#chart").selectAll("svg")
+    .data(teams)
+    .enter()
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom);
+
+  svg.append("text")
+    .attr("class", "team label")
+    .attr("x", margin.left)
+    .attr("y", margin.top / 2)
+    .attr("font-size", "1.2em")
+    .text(function (d) { return d.key; })
+
+  var hist = svg.append("g")
+    .attr("class", "hist")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  hist.append("g")
+    .attr("class", "axis")
+    .attr("transform", "translate(0" + "," + height + ")")
+    .call(d3.axisBottom(x)
+      .tickValues(x.domain())
+    );
+
+  // Histogram bars
+  var bars = hist.selectAll(".bar")
+    .data(function (d) { return d.values; })
+    .enter()
+    .append("g")
+    .attr("class", "bar")
+    .attr("transform", function (s) {
+      return "translate(" + x(s.x0) + "," + y(s.length) + ")";
+    });
+
+  bars.append("rect")
+    .attr("class", "bar")
+    .attr("x", 1)
+    .attr("width", function (s) { return x(s.x1) - x(s.x0); })
+    .attr("height", function (s) { return height - y(s.length); })
+    .attr("fill", "#c9c9c9");
 
 });

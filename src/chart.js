@@ -10,17 +10,17 @@ function _calculateAge(dob) {
   return Math.abs(ageDate.getUTCFullYear() - 1970);
 }
 
-var margin = { top: 70, right: 50, bottom: 40, left: 30 },
-  width = 300 - margin.left - margin.right,
+var margin = { top: 70, right: 5, bottom: 40, left: 30 },
+  width = 100 - margin.left - margin.right,
   height = 250 - margin.top - margin.bottom;
 
 // Bin axis.
 var x = d3.scaleLinear()
-  .range([0, width]);
+  .range([0, height]);
 
-// Y scale for histograms
+// Count axis.
 var y = d3.scaleLinear()
-  .range([height, 0]);
+  .range([0, width]);
 
 // Read the data set.
 d3.csv("players.csv", function (d) {
@@ -38,7 +38,7 @@ d3.csv("players.csv", function (d) {
   var histogram = d3.histogram()
     .value(function (d) { return d.Games; })
     .domain(x.domain())
-    .thresholds(x.ticks(10));
+    .thresholds(x.ticks(15));
 
   // Nest by team.
   var nest = d3.nest()
@@ -78,7 +78,7 @@ d3.csv("players.csv", function (d) {
     .attr("class", "team label")
     .attr("x", margin.left)
     .attr("y", margin.top / 2)
-    .attr("font-size", "1.2em")
+    .attr("font-size", "1.0em")
     .text(function (d) { return d.key; })
 
   var hist = svg.append("g")
@@ -87,9 +87,14 @@ d3.csv("players.csv", function (d) {
 
   hist.append("g")
     .attr("class", "axis")
-    .attr("transform", "translate(0" + "," + height + ")")
-    .call(d3.axisBottom(x)
-      .tickValues(x.domain())
+    .attr("transform", "translate(0,0)")
+    .call(d3.axisLeft(x).ticks(4)
+    );
+
+    hist.append("g")
+    .attr("class", "axis")
+    .attr("transform", "translate(0,0)")
+    .call(d3.axisTop(y).ticks(4)
     );
 
   // Histogram bars
@@ -99,14 +104,15 @@ d3.csv("players.csv", function (d) {
     .append("g")
     .attr("class", "bar")
     .attr("transform", function (s) {
-      return "translate(" + x(s.x0) + "," + y(s.length) + ")";
+      return "translate(0," + x(s.x0) + ")";
     });
 
   bars.append("rect")
     .attr("class", "bar")
     .attr("x", 1)
-    .attr("width", function (s) { return x(s.x1) - x(s.x0); })
-    .attr("height", function (s) { return height - y(s.length); })
+    .attr("y", 1)
+    .attr("height", function (s) { return x(s.x1) - x(s.x0); })
+    .attr("width", function (s) { return y(s.length); })
     .attr("fill", "#c9c9c9");
 
 });

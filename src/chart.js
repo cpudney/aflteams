@@ -15,12 +15,13 @@ var margin = { top: 70, right: 5, bottom: 40, left: 30 },
   height = 250 - margin.top - margin.bottom;
 
 // Bin axis.
-var x = d3.scaleLinear()
-  .range([0, height]);
+var x = d3.scaleLinear().range([0, height]);
 
 // Count axis.
-var y = d3.scaleLinear()
-  .range([0, width]);
+var y = d3.scaleLinear().range([0, width]);
+
+// Colour scale.
+var clr = d3.scaleOrdinal().range(d3.schemeSet3);
 
 // Read the data set.
 d3.csv("players.csv", function (d) {
@@ -65,6 +66,7 @@ d3.csv("players.csv", function (d) {
 
   // Set domains.
   y.domain([0, d3.max(teamMax, function (d) { return d.max; })]);
+  clr.domain(teams.map(function (d) { return d.key }));
 
   // for each region, set up a svg with axis and label
   var svg = d3.select("#chart").selectAll("svg")
@@ -91,7 +93,7 @@ d3.csv("players.csv", function (d) {
     .call(d3.axisLeft(x).ticks(4)
     );
 
-    hist.append("g")
+  hist.append("g")
     .attr("class", "axis")
     .attr("transform", "translate(0,0)")
     .call(d3.axisTop(y).ticks(4)
@@ -113,6 +115,5 @@ d3.csv("players.csv", function (d) {
     .attr("y", 1)
     .attr("height", function (s) { return x(s.x1) - x(s.x0); })
     .attr("width", function (s) { return y(s.length); })
-    .attr("fill", "#c9c9c9");
-
+    .attr("fill", function (s, i) { return clr.range()[i]; });
 });

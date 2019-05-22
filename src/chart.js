@@ -50,17 +50,20 @@ d3.csv("players.csv", function (d) {
   var teams = nest.map(function (d) {
     return {
       key: d.key,
-      values: histogram(d.values)
+      values: histogram(d.values),
+      average: d3.mean(d.values, function (s) { return s.Games; })
     }
-  });
+  })
+    .sort(function (x, y) { return d3.ascending(x.average, y.average); });
+
+
+  console.log(teams);
 
   // Calculate max for each team.
   var teamMax = teams.map(function (d) {
     return {
       team: d.key,
-      max: d3.max(d.values, function (s) {
-        return s.length;
-      })
+      max: d3.max(d.values, function (s) { return s.length; })
     }
   })
 
@@ -90,18 +93,20 @@ d3.csv("players.csv", function (d) {
   hist.append("g")
     .attr("class", "axis")
     .attr("transform", "translate(0,0)")
-    .call(d3.axisLeft(x).ticks(4)
-    );
+    .call(d3.axisLeft(x).ticks(4));
 
   hist.append("g")
     .attr("class", "axis")
     .attr("transform", "translate(0,0)")
-    .call(d3.axisTop(y).ticks(4)
-    );
+    .call(d3.axisTop(y).ticks(4));
 
   // Histogram bars
   var bars = hist.selectAll(".bar")
-    .data(function (d) { return d.values; })
+    .data(function (d) {
+      return d.values.map(
+        // Add team name to values.
+        function (s) { s.team = d.key; return s; });
+    })
     .enter()
     .append("g")
     .attr("class", "bar")
@@ -110,10 +115,10 @@ d3.csv("players.csv", function (d) {
     });
 
   bars.append("rect")
-    .attr("class", "bar")
     .attr("x", 1)
     .attr("y", 1)
     .attr("height", function (s) { return x(s.x1) - x(s.x0); })
     .attr("width", function (s) { return y(s.length); })
-    .attr("fill", function (s, i) { return clr.range()[i]; });
+    .attr("fill", function (s) { return clr(s.team) });
+
 });

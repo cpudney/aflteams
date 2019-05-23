@@ -10,18 +10,16 @@ function _calculateAge(dob) {
   return Math.abs(ageDate.getUTCFullYear() - 1970);
 }
 
+// Margins.
 var margin = { top: 70, right: 5, bottom: 40, left: 30 },
   width = 100 - margin.left - margin.right,
   height = 250 - margin.top - margin.bottom;
 
-// Bin axis.
-var x = d3.scaleLinear().range([0, height]);
-
-// Count axis.
-var y = d3.scaleLinear().range([0, width]);
+// Colours - from colorgorical: http://vrl.cs.brown.edu/color
+var palette = ["rgb(180,221,212)", "rgb(12,95,49)", "rgb(82,220,188)", "rgb(159,33,8)", "rgb(44,228,98)", "rgb(157,13,108)", "rgb(163,215,30)", "rgb(62,60,141)", "rgb(135,169,253)", "rgb(16,75,109)", "rgb(251,93,231)", "rgb(39,15,226)", "rgb(217,146,226)", "rgb(20,143,174)", "rgb(246,187,134)", "rgb(124,68,14)", "rgb(244,212,3)", "rgb(255,77,130)"]
 
 // Colour scale.
-var clr = d3.scaleOrdinal().range(d3.schemeSet3);
+var clr = d3.scaleOrdinal().range(palette);
 
 // Read the data set.
 d3.csv("players.csv", function (d) {
@@ -33,43 +31,15 @@ d3.csv("players.csv", function (d) {
   return d;
 }).then(function (data) {
 
-  x.domain(d3.extent(data, function (d) { return d.Games; }));
+  // Map team colours.
+  clr.domain(d3.map(data, function (d) { return d.Team; }).keys())
 
-  // Define histogram.
-  var histogram = d3.histogram()
-    .value(function (d) { return d.Games; })
-    .domain(x.domain())
-    .thresholds(x.ticks(15));
+  // Bins and counts axes.
+  var x = d3.scaleLinear().range([0, height]);
+  var y = d3.scaleLinear().range([0, width]);
 
-  // Nest by team.
-  var nest = d3.nest()
-    .key(function (d) { return d.Team; })
-    .entries(data);
-
-  // Apply histogram generator to each team's values.
-  var teams = nest.map(function (d) {
-    return {
-      key: d.key,
-      values: histogram(d.values),
-      average: d3.mean(d.values, function (s) { return s.Games; })
-    }
-  })
-    .sort(function (x, y) { return d3.ascending(x.average, y.average); });
-
-
-  console.log(teams);
-
-  // Calculate max for each team.
-  var teamMax = teams.map(function (d) {
-    return {
-      team: d.key,
-      max: d3.max(d.values, function (s) { return s.length; })
-    }
-  })
-
-  // Set domains.
-  y.domain([0, d3.max(teamMax, function (d) { return d.max; })]);
-  clr.domain(teams.map(function (d) { return d.key }));
+  // Bin data.
+  var teams = binData(data, x, y, function (d) { return d.Age; });
 
   // for each region, set up a svg with axis and label
   var svg = d3.select("#chart").selectAll("svg")
@@ -122,3 +92,43 @@ d3.csv("players.csv", function (d) {
     .attr("fill", function (s) { return clr(s.team) });
 
 });
+
+function binData(data, x, y, valueFn) {
+
+  // Set bins domain.
+  x.domain(d3.extent(data, valueFn));
+
+  // Define histogram.
+  var histogram = d3.histogram()
+    .value(valueFn)
+    .domain(x.domain())
+    .thresholds(x.ticks(12));
+
+  // Nest by team.
+  var nest = d3.nest()
+    .key(function (d) { return d.Team; })
+    .entries(data);
+
+  // Apply histogram generator to each team's values.
+  var teams = nest.map(function (d) {
+    return {
+      key: d.key,
+      values: histogram(d.values),
+      average: d3.mean(d.values, valueFn)
+    };
+  })
+    .sort(function (x, y) { return d3.ascending(x.average, y.average); });
+
+  // Calculate max for each team.
+  var teamMax = teams.map(function (d) {
+    return {
+      team: d.key,
+      max: d3.max(d.values, function (s) { return s.length; })
+    };
+  });
+
+  // Set domains.
+  y.domain([0, d3.max(teamMax, function (d) { return d.max; })]);
+
+  return teams;
+}

@@ -42,7 +42,6 @@ function _binData(data, x, y, valueFn) {
       average: d3.mean(d.values, valueFn)
     };
   })
-    .sort(function (a, b) { return d3.ascending(a.average, b.average); });
 
   // Calculate max for each team.
   var teamMax = teams.map(function (d) {
@@ -87,42 +86,54 @@ d3.csv("players.csv", function (d) {
   console.log(data);
 
   // Bins and counts axes.
-  var x = d3.scaleLinear().range([0, height])
+  plotCharts(data, "#chart1", function (d) { return d.Weight; });
+  plotCharts(data, "#chart2", function (d) { return d.Age; });
+
+
+});
+
+function plotCharts(data, id, accessorFn) {
+
+  var x = d3.scaleLinear().range([0, height]);
   var y = d3.scaleLinear().range([0, width]);
 
   // Bin data.
-  var teams = _binData(data, x, y, function (d) { return d.Weight; });
+  var teams = _binData(data, x, y, accessorFn);
 
-  // for each region, set up a svg with axis and label
-  var svg = d3.select("#chart").selectAll("svg")
+  // Add SVG.
+  var svg = d3.select(id).selectAll("svg")
     .data(teams)
     .enter()
     .append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom);
 
+  // Team labels.
   svg.append("text")
     .attr("class", "team label")
     .attr("x", margin.left)
     .attr("y", margin.top / 2)
     .attr("font-size", "1.0em")
-    .text(function (d) { return d.key; })
+    .text(function (d) { return d.key; });
 
+  // Histograms.
   var hist = svg.append("g")
     .attr("class", "hist")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+  // X-axis.
   hist.append("g")
     .attr("class", "axis")
     .attr("transform", "translate(0,0)")
     .call(d3.axisLeft(x).ticks(4));
 
+  // Y-axis.
   hist.append("g")
     .attr("class", "axis")
     .attr("transform", "translate(0,0)")
     .call(d3.axisTop(y).ticks(4));
 
-  // Histogram bars
+  // Histogram bars.
   var bars = hist.selectAll(".bar")
     .data(function (d) {
       return d.values.map(
@@ -141,6 +152,5 @@ d3.csv("players.csv", function (d) {
     .attr("y", 1)
     .attr("height", function (s) { return x(s.x1) - x(s.x0); })
     .attr("width", function (s) { return y(s.length); })
-    .attr("fill", function (s) { return clr(s.team) });
-
-});
+    .attr("fill", function (s) { return clr(s.team); });
+}

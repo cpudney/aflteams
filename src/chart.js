@@ -13,15 +13,18 @@ function _calculateAge(dob) {
 // Binning of data for histograms.
 //
 // data: the data to bin
-// x: binning axis scale
-// y: counts axis scale
+// valueFn: data accessor functions
 //
 // Return the binned data.
 //
-function _binData(data, x, y, valueFn) {
+function _binData(data, valueFn) {
 
-  // Set bins domain.
+  // Bin scale.
+  var x = d3.scaleLinear().range([0, height]);
   x.domain(d3.extent(data, valueFn)).nice();
+
+  // Counts scale.
+  var y = d3.scaleLinear().range([0, width]);
 
   // Define histogram.
   var histogram = d3.histogram()
@@ -54,7 +57,71 @@ function _binData(data, x, y, valueFn) {
   // Set counts domain.
   y.domain([0, d3.max(teamMax, function (d) { return d.max; })]).nice();
 
-  return teams;
+  return {
+    'x': x,
+    'y': y,
+    'teams': teams
+  }
+}
+
+function plotCharts(data, id, accessorFn) {
+
+  // Bin data.
+  var bins = _binData(data, accessorFn);
+
+  // Add SVG.
+  var svg = d3.select(id).selectAll("svg")
+    .data(bins.teams)
+    .enter()
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom);
+
+  // Team labels.
+  svg.append("text")
+    .attr("class", "team label")
+    .attr("x", margin.left)
+    .attr("y", margin.top / 2)
+    .attr("font-size", "1.0em")
+    .text(function (d) { return d.key; });
+
+  // Histograms.
+  var hist = svg.append("g")
+    .attr("class", "hist")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  // X-axis.
+  hist.append("g")
+    .attr("class", "axis")
+    .attr("transform", "translate(0,0)")
+    .call(d3.axisLeft(bins.x).ticks(4));
+
+  // Y-axis.
+  hist.append("g")
+    .attr("class", "axis")
+    .attr("transform", "translate(0,0)")
+    .call(d3.axisTop(bins.y).ticks(4));
+
+  // Histogram bars.
+  var bars = hist.selectAll(".bar")
+    .data(function (d) {
+      return d.values.map(
+        // Add team name to values.
+        function (s) { s.team = d.key; return s; });
+    })
+    .enter()
+    .append("g")
+    .attr("class", "bar")
+    .attr("transform", function (s) {
+      return "translate(0," + bins.x(s.x0) + ")";
+    });
+
+  bars.append("rect")
+    .attr("x", 1)
+    .attr("y", 1)
+    .attr("height", function (s) { return bins.x(s.x1) - bins.x(s.x0); })
+    .attr("width", function (s) { return bins.y(s.length); })
+    .attr("fill", function (s) { return clr(s.team); });
 }
 
 // Margins.
@@ -81,76 +148,56 @@ d3.csv("players.csv", function (d) {
 }).then(function (data) {
 
   // Map team colours.
-  clr.domain(d3.map(data, function (d) { return d.Team; }).keys())
+  var keys = d3.map(data, function (d) { return d.Team; }).keys();
+  clr.domain(keys);
 
-  console.log(data);
+  // Bin data.
+  var age = _binData(data, function (d) { return d.Age; });
+  var height = _binData(data, function (d) { return d.Height; });
+  var weight = _binData(data, function (d) { return d.Weight; });
+  var games = _binData(data, function (d) { return d.Games; });
+
+  // Combine arrays.
+  var teams = {};
+  keys.forEach(function (el) { teams[el] = { key: el } });
+  age.teams.forEach(function (el) {
+    teams[el.key].age = {
+      'values': el.values,
+      'average': el.average
+    }
+  });
+
+  height.teams.forEach(function (el) {
+    teams[el.key].height = {
+      'values': el.values,
+      'average': el.average
+    }
+  });
+
+  weight.teams.forEach(function (el) {
+    teams[el.key].weight = {
+      'values': el.values,
+      'average': el.average
+    }
+  });
+
+  games.teams.forEach(function (el) {
+    teams[el.key].games = {
+      'values': el.values,
+      'average': el.average
+    }
+  });
+
+  // Axis scales.
+  var scales = {};
+  scales['age'] = {x: age.x, y: age.y};
+  scales['games'] = {x: games.x, y: games.y};
+  scales['height'] = {x: height.x, y: height.y};
+  scales['weight'] = {x: weight.x, y: weight.y};
+
+  console.log(scales);
 
   // Bins and counts axes.
   plotCharts(data, "#chart1", function (d) { return d.Weight; });
   plotCharts(data, "#chart2", function (d) { return d.Age; });
-
-
 });
-
-function plotCharts(data, id, accessorFn) {
-
-  var x = d3.scaleLinear().range([0, height]);
-  var y = d3.scaleLinear().range([0, width]);
-
-  // Bin data.
-  var teams = _binData(data, x, y, accessorFn);
-
-  // Add SVG.
-  var svg = d3.select(id).selectAll("svg")
-    .data(teams)
-    .enter()
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom);
-
-  // Team labels.
-  svg.append("text")
-    .attr("class", "team label")
-    .attr("x", margin.left)
-    .attr("y", margin.top / 2)
-    .attr("font-size", "1.0em")
-    .text(function (d) { return d.key; });
-
-  // Histograms.
-  var hist = svg.append("g")
-    .attr("class", "hist")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-  // X-axis.
-  hist.append("g")
-    .attr("class", "axis")
-    .attr("transform", "translate(0,0)")
-    .call(d3.axisLeft(x).ticks(4));
-
-  // Y-axis.
-  hist.append("g")
-    .attr("class", "axis")
-    .attr("transform", "translate(0,0)")
-    .call(d3.axisTop(y).ticks(4));
-
-  // Histogram bars.
-  var bars = hist.selectAll(".bar")
-    .data(function (d) {
-      return d.values.map(
-        // Add team name to values.
-        function (s) { s.team = d.key; return s; });
-    })
-    .enter()
-    .append("g")
-    .attr("class", "bar")
-    .attr("transform", function (s) {
-      return "translate(0," + x(s.x0) + ")";
-    });
-
-  bars.append("rect")
-    .attr("x", 1)
-    .attr("y", 1)
-    .attr("height", function (s) { return x(s.x1) - x(s.x0); })
-    .attr("width", function (s) { return y(s.length); })
-    .attr("fill", function (s) { return clr(s.team); });
-}

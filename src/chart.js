@@ -64,18 +64,15 @@ function _binData(data, valueFn) {
   }
 }
 
-function plotCharts(data, id, accessorFn) {
-
-  // Bin data.
-  var bins = _binData(data, accessorFn);
+function _plotCharts(data, scales, id) {
 
   // Add SVG.
   var svg = d3.select(id).selectAll("svg")
-    .data(bins.teams)
+    .data(data)
     .enter()
     .append("svg")
     .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom);
+    .attr("height", 4 * (height + margin.bottom) + margin.top);
 
   // Team labels.
   svg.append("text")
@@ -86,26 +83,45 @@ function plotCharts(data, id, accessorFn) {
     .text(function (d) { return d.key; });
 
   // Histograms.
-  var hist = svg.append("g")
+  var col = svg.append("g")
     .attr("class", "hist")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  // X-axis.
-  hist.append("g")
+  var h = height +  margin.bottom;
+  _plotHistogram('age', scales,
+    col.append("g")
+      .attr("transform", "translate(0,0)"));
+  _plotHistogram('games', scales,
+    col.append("g")
+      .attr("transform", "translate(0," + h + ")"));
+  _plotHistogram('height', scales,
+    col.append("g")
+      .attr("transform", "translate(0," + 2 * h + ")"));
+  _plotHistogram('weight', scales,
+    col.append("g")
+      .attr("transform", "translate(0," + 3 * h + ")"));
+}
+
+function _plotHistogram(key, scales, el) {
+
+  // X-axis
+  var x = scales[key].x;
+  el.append("g")
     .attr("class", "axis")
     .attr("transform", "translate(0,0)")
-    .call(d3.axisLeft(bins.x).ticks(4));
+    .call(d3.axisLeft(x).ticks(4));
 
   // Y-axis.
-  hist.append("g")
+  var y = scales[key].y;
+  el.append("g")
     .attr("class", "axis")
     .attr("transform", "translate(0,0)")
-    .call(d3.axisTop(bins.y).ticks(4));
+    .call(d3.axisTop(y).ticks(4));
 
   // Histogram bars.
-  var bars = hist.selectAll(".bar")
+  var bars = el.selectAll(".bar")
     .data(function (d) {
-      return d.values.map(
+      return d[key].values.map(
         // Add team name to values.
         function (s) { s.team = d.key; return s; });
     })
@@ -113,14 +129,13 @@ function plotCharts(data, id, accessorFn) {
     .append("g")
     .attr("class", "bar")
     .attr("transform", function (s) {
-      return "translate(0," + bins.x(s.x0) + ")";
+      return "translate(0," + x(s.x0) + ")";
     });
-
   bars.append("rect")
     .attr("x", 1)
     .attr("y", 1)
-    .attr("height", function (s) { return bins.x(s.x1) - bins.x(s.x0); })
-    .attr("width", function (s) { return bins.y(s.length); })
+    .attr("height", function (s) { return x(s.x1) - x(s.x0); })
+    .attr("width", function (s) { return y(s.length); })
     .attr("fill", function (s) { return clr(s.team); });
 }
 
@@ -195,7 +210,5 @@ d3.csv("players.csv", function (d) {
   scales['height'] = { x: height.x, y: height.y };
   scales['weight'] = { x: weight.x, y: weight.y };
 
-  console.log(Object.values(teams));
-
-  plotHistograms(Object.values(teams), scales, "#chart1");
+  _plotCharts(Object.values(teams), scales, "#chart1");
 });

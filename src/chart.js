@@ -190,14 +190,12 @@ d3.csv("players.csv", function (d) {
 
   // Axis scales.
   var scales = {};
-  scales['age'] = {x: age.x, y: age.y};
-  scales['games'] = {x: games.x, y: games.y};
-  scales['height'] = {x: height.x, y: height.y};
-  scales['weight'] = {x: weight.x, y: weight.y};
+  scales['age'] = { x: age.x, y: age.y };
+  scales['games'] = { x: games.x, y: games.y };
+  scales['height'] = { x: height.x, y: height.y };
+  scales['weight'] = { x: weight.x, y: weight.y };
 
-  console.log(scales);
+  console.log(Object.values(teams));
 
-  // Bins and counts axes.
-  plotCharts(data, "#chart1", function (d) { return d.Weight; });
-  plotCharts(data, "#chart2", function (d) { return d.Age; });
+  plotHistograms(Object.values(teams), scales, "#chart1");
 });

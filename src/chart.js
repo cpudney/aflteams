@@ -64,14 +64,23 @@ function _binData(data, valueFn) {
   }
 }
 
-function _plotCharts(data, scales, id) {
+function sortCharts(sel) {
+  console.log("sorting...");
+  sel.sort(function (a, b) {
+    return d3.ascending(Math.random(), Math.random());
+  })
+    .transition().duration(500);
+}
+
+function plotCharts(data, scales, id) {
 
   // Add SVG.
+  var w = width + margin.left + margin.right;
   var svg = d3.select(id).selectAll("svg")
     .data(data)
     .enter()
     .append("svg")
-    .attr("width", width + margin.left + margin.right)
+    .attr("width", w)
     .attr("height", 4 * (height + margin.bottom) + margin.top);
 
   // Team labels.
@@ -87,22 +96,24 @@ function _plotCharts(data, scales, id) {
     .attr("class", "hist")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  var h = height +  margin.bottom;
-  _plotHistogram('age', scales,
+  var h = height + margin.bottom;
+  plotHistogram('age', scales,
     col.append("g")
       .attr("transform", "translate(0,0)"));
-  _plotHistogram('games', scales,
+  plotHistogram('games', scales,
     col.append("g")
       .attr("transform", "translate(0," + h + ")"));
-  _plotHistogram('height', scales,
+  plotHistogram('height', scales,
     col.append("g")
       .attr("transform", "translate(0," + 2 * h + ")"));
-  _plotHistogram('weight', scales,
+  plotHistogram('weight', scales,
     col.append("g")
       .attr("transform", "translate(0," + 3 * h + ")"));
+
+  return svg;
 }
 
-function _plotHistogram(key, scales, el) {
+function plotHistogram(key, scales, el) {
 
   // X-axis
   var x = scales[key].x;
@@ -160,6 +171,7 @@ d3.csv("players.csv", function (d) {
   d.DoB = new Date(d.DoB);
   d.Age = _calculateAge(d.DoB);
   return d;
+
 }).then(function (data) {
 
   // Map team colours.
@@ -210,5 +222,12 @@ d3.csv("players.csv", function (d) {
   scales['height'] = { x: height.x, y: height.y };
   scales['weight'] = { x: weight.x, y: weight.y };
 
-  _plotCharts(Object.values(teams), scales, "#chart1");
+  // Data values.
+  values = Object.values(teams);
+  values.sort(function (a, b) { return d3.ascending(a.games.average, b.games.average) })
+
+  // Plot histograms.
+  var charts = plotCharts(values, scales, "#chart1");
+
+  d3.select("#sort").on("click", function () { sortCharts(charts) });
 });

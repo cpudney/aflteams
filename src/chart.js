@@ -64,27 +64,23 @@ function _binData(data, valueFn) {
   }
 }
 
-function sortCharts(sel) {
-  console.log("sorting...");
-  sel.sort(function (a, b) {
-    return d3.ascending(Math.random(), Math.random());
-  })
-    .transition().duration(500);
-}
-
 function plotCharts(data, scales, id) {
 
   // Add SVG.
   var w = width + margin.left + margin.right;
-  var svg = d3.select(id).selectAll("svg")
-    .data(data)
-    .enter()
+  var svg = d3.select(id)
     .append("svg")
-    .attr("width", w)
+    .attr("width", w * data.length)
     .attr("height", 4 * (height + margin.bottom) + margin.top);
 
+  var g = svg.selectAll(g)
+    .data(data)
+    .enter()
+    .append("g")
+    .attr("transform", function (d, i) { return "translate(" + w * i + ",0)" });
+
   // Team labels.
-  svg.append("text")
+  g.append("text")
     .attr("class", "team label")
     .attr("x", margin.left)
     .attr("y", margin.top / 2)
@@ -92,7 +88,7 @@ function plotCharts(data, scales, id) {
     .text(function (d) { return d.key; });
 
   // Histograms.
-  var col = svg.append("g")
+  var col = g.append("g")
     .attr("class", "hist")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -110,7 +106,17 @@ function plotCharts(data, scales, id) {
     col.append("g")
       .attr("transform", "translate(0," + 3 * h + ")"));
 
-  return svg;
+  return g;
+}
+
+function sortCharts(sel) {
+  console.log("sorting...");
+  var w = width + margin.left + margin.right;
+  sel.sort(function (a, b) {
+    return d3.ascending(Math.random(), Math.random());
+  })
+    .transition().duration(500)
+    .attr("transform", function (d, i) { return "translate(" + w * i + ",0)" });
 }
 
 function plotHistogram(key, scales, el) {

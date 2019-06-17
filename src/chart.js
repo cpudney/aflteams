@@ -4,7 +4,7 @@
 //
 // Return: age in years.
 //
-function _calculateAge(dob) {
+function calculateAge(dob) {
   var diffMs = Date.now() - dob.getTime();
   var ageDate = new Date(diffMs); // miliseconds from epoch
   return Math.abs(ageDate.getUTCFullYear() - 1970);
@@ -17,7 +17,7 @@ function _calculateAge(dob) {
 //
 // Return the binned data.
 //
-function _binData(data, valueFn) {
+function binData(data, valueFn) {
 
   // Bin scale.
   var x = d3.scaleLinear().range([0, height]);
@@ -109,11 +109,10 @@ function plotCharts(data, scales, id) {
   return g;
 }
 
-function sortCharts(sel) {
-  console.log("sorting...");
+function sortCharts(sel, key) {
   var w = width + margin.left + margin.right;
   sel.sort(function (a, b) {
-    return d3.ascending(Math.random(), Math.random());
+    return d3.ascending(b[key].average, a[key].average);
   })
     .transition().duration(500)
     .attr("transform", function (d, i) { return "translate(" + w * i + ",0)" });
@@ -175,7 +174,7 @@ d3.csv("players.csv", function (d) {
   d.Weight = Number(d.Weight);
   d.Height = Number(d.Height);
   d.DoB = new Date(d.DoB);
-  d.Age = _calculateAge(d.DoB);
+  d.Age = calculateAge(d.DoB);
   return d;
 
 }).then(function (data) {
@@ -185,10 +184,10 @@ d3.csv("players.csv", function (d) {
   clr.domain(keys);
 
   // Bin data.
-  var age = _binData(data, function (d) { return d.Age; });
-  var height = _binData(data, function (d) { return d.Height; });
-  var weight = _binData(data, function (d) { return d.Weight; });
-  var games = _binData(data, function (d) { return d.Games; });
+  var age = binData(data, function (d) { return d.Age; });
+  var height = binData(data, function (d) { return d.Height; });
+  var weight = binData(data, function (d) { return d.Weight; });
+  var games = binData(data, function (d) { return d.Games; });
 
   // Combine arrays.
   var teams = {};
@@ -230,10 +229,13 @@ d3.csv("players.csv", function (d) {
 
   // Data values.
   values = Object.values(teams);
-  values.sort(function (a, b) { return d3.ascending(a.games.average, b.games.average) })
 
   // Plot histograms.
   var charts = plotCharts(values, scales, "#chart1");
 
-  d3.select("#sort").on("click", function () { sortCharts(charts) });
+  // Sorting.
+  d3.select("#age_sort").on("click", function () { sortCharts(charts, 'age') });
+  d3.select("#games_sort").on("click", function () { sortCharts(charts, 'games') });
+  d3.select("#height_sort").on("click", function () { sortCharts(charts, 'height') });
+  d3.select("#weight_sort").on("click", function () { sortCharts(charts, 'weight') });
 });

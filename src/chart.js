@@ -81,11 +81,16 @@ function plotCharts(data, scales, id) {
 
   // Team labels.
   g.append("text")
-    .attr("class", "team label")
     .attr("x", margin.left)
-    .attr("y", margin.top / 2)
-    .attr("font-size", "1.0em")
+    .attr("y", "20")
     .text(function (d) { return d.key; });
+
+  // Team logos
+  g.append("image")
+    .attr("x", margin.left)
+    .attr("y", "25")
+    .attr("height", margin.top / 2)
+    .attr("href", function (d) { return "logos/" + d.key.toLowerCase() + ".png" })
 
   // Histograms.
   var col = g.append("g")
@@ -156,9 +161,9 @@ function plotHistogram(key, scales, el) {
 }
 
 // Margins.
-var margin = { top: 70, right: 5, bottom: 40, left: 30 },
+var margin = { top: 100, right: 5, bottom: 40, left: 30 },
   width = 100 - margin.left - margin.right,
-  height = 250 - margin.top - margin.bottom;
+  height = 200 - margin.bottom;
 
 // Colours - from colorgorical: http://vrl.cs.brown.edu/color
 var palette = ["rgb(180,221,212)", "rgb(12,95,49)", "rgb(82,220,188)", "rgb(159,33,8)", "rgb(44,228,98)", "rgb(157,13,108)", "rgb(163,215,30)", "rgb(62,60,141)", "rgb(135,169,253)", "rgb(16,75,109)", "rgb(251,93,231)", "rgb(39,15,226)", "rgb(217,146,226)", "rgb(20,143,174)", "rgb(246,187,134)", "rgb(124,68,14)", "rgb(244,212,3)", "rgb(255,77,130)"]
@@ -231,7 +236,7 @@ d3.csv("players.csv", function (d) {
   values = Object.values(teams);
 
   // Plot histograms.
-  var charts = plotCharts(values, scales, "#chart1");
+  var charts = plotCharts(values, scales, "#chart");
 
   // Sorting.
   d3.select("#age_sort").on("click", function () { sortCharts(charts, 'age') });

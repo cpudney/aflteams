@@ -80,17 +80,18 @@ function plotCharts(data, scales, id) {
     .attr("transform", function (d, i) { return "translate(" + w * i + ",0)" });
 
   // Team labels.
-  g.append("text")
-    .attr("x", margin.left)
-    .attr("y", "20")
-    .text(function (d) { return d.key; });
+  // g.append("text")
+  //   .attr("x", margin.left)
+  //   .attr("y", "20")
+  //   .text(function (d) { return d.key; });
 
   // Team logos
   g.append("image")
     .attr("x", margin.left)
-    .attr("y", "25")
-    .attr("height", margin.top / 2)
-    .attr("href", function (d) { return "logos/" + d.key.toLowerCase() + ".png" })
+    .attr("y", "10")
+    .attr("height", margin.top *.6)
+    .attr("href", function (d) { return "logos/" + d.key.toLowerCase() + ".svg" })
+    .attr("title", function (d) { return d.key; });
 
   // Histograms.
   var col = g.append("g")

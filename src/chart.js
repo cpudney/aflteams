@@ -66,12 +66,25 @@ function binData(data, valueFn) {
 
 function plotCharts(data, scales, id) {
 
-  // Add SVG.
   var w = width + margin.left + margin.right;
+  var h = height + margin.bottom;
+
+  // Add SVG.
   var svg = d3.select(id)
     .append("svg")
-    .attr("width", w * data.length)
+    .attr("width", w * (1+ data.length))
     .attr("height", 4 * (height + margin.bottom) + margin.top);
+
+  // Category labels.
+  var offset = margin.top + height / 2;
+  svg.selectAll("text category")
+    .data(["Age", "Games", "Height", "Weight"])
+    .enter()
+    .append("text")
+    .attr("class", "category")
+    .attr("text-anchor", "middle")
+    .attr("transform", function (d, i) { return "rotate(90)translate(" + (offset + h * i) + ",-5)" })
+    .text(function (d) { return d });
 
   var g = svg.selectAll(g)
     .data(data)
@@ -89,7 +102,7 @@ function plotCharts(data, scales, id) {
   g.append("image")
     .attr("x", margin.left)
     .attr("y", "10")
-    .attr("height", margin.top *.6)
+    .attr("height", margin.top * .6)
     .attr("href", function (d) { return "logos/" + d.key.toLowerCase() + ".svg" })
     .attr("title", function (d) { return d.key; });
 
@@ -98,7 +111,6 @@ function plotCharts(data, scales, id) {
     .attr("class", "hist")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  var h = height + margin.bottom;
   plotHistogram('age', scales,
     col.append("g")
       .attr("transform", "translate(0,0)"));
@@ -162,7 +174,7 @@ function plotHistogram(key, scales, el) {
 }
 
 // Margins.
-var margin = { top: 100, right: 5, bottom: 40, left: 30 },
+var margin = { top: 100, right: 0, bottom: 40, left: 45 },
   width = 100 - margin.left - margin.right,
   height = 200 - margin.bottom;
 

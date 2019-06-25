@@ -72,7 +72,7 @@ function plotCharts(data, scales, id) {
   // Add SVG.
   var svg = d3.select(id)
     .append("svg")
-    .attr("width", w * (1+ data.length))
+    .attr("width", w * (1 + data.length))
     .attr("height", 4 * (height + margin.bottom) + margin.top);
 
   // Category labels.
@@ -92,12 +92,6 @@ function plotCharts(data, scales, id) {
     .append("g")
     .attr("transform", function (d, i) { return "translate(" + w * i + ",0)" });
 
-  // Team labels.
-  // g.append("text")
-  //   .attr("x", margin.left)
-  //   .attr("y", "20")
-  //   .text(function (d) { return d.key; });
-
   // Team logos
   g.append("image")
     .attr("x", margin.left)
@@ -111,16 +105,16 @@ function plotCharts(data, scales, id) {
     .attr("class", "hist")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  plotHistogram('age', scales,
+  plotHistogram('age', "years", scales,
     col.append("g")
       .attr("transform", "translate(0,0)"));
-  plotHistogram('games', scales,
+  plotHistogram('games', "games", scales,
     col.append("g")
       .attr("transform", "translate(0," + h + ")"));
-  plotHistogram('height', scales,
+  plotHistogram('height', "mm", scales,
     col.append("g")
       .attr("transform", "translate(0," + 2 * h + ")"));
-  plotHistogram('weight', scales,
+  plotHistogram('weight', "kg", scales,
     col.append("g")
       .attr("transform", "translate(0," + 3 * h + ")"));
 
@@ -136,7 +130,7 @@ function sortCharts(sel, key) {
     .attr("transform", function (d, i) { return "translate(" + w * i + ",0)" });
 }
 
-function plotHistogram(key, scales, el) {
+function plotHistogram(key, units, scales, el) {
 
   // X-axis
   var x = scales[key].x;
@@ -154,11 +148,7 @@ function plotHistogram(key, scales, el) {
 
   // Histogram bars.
   var bars = el.selectAll(".bar")
-    .data(function (d) {
-      return d[key].values.map(
-        // Add team name to values.
-        function (s) { s.team = d.key; return s; });
-    })
+    .data(function (d) { return d[key].values })
     .enter()
     .append("g")
     .attr("class", "bar")
@@ -168,9 +158,33 @@ function plotHistogram(key, scales, el) {
   bars.append("rect")
     .attr("x", 1)
     .attr("y", 1)
-    .attr("height", function (s) { return x(s.x1) - x(s.x0); })
-    .attr("width", function (s) { return y(s.length); })
-    .attr("fill", function (s) { return clr(s.team); });
+    .attr("height", function (s) { return x(s.x1) - x(s.x0) })
+    .attr("width", function (s) { return y(s.length) })
+
+  // Tooltip.
+  var tip = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+  // Average markers.
+  el.append("circle")
+    .attr("class", "marker")
+    .attr("r", "4px")
+    .attr("cx", 0)
+    .attr("cy", function (s) { return x(s[key].average) })
+    .on("mouseover", function (s) {
+      tip.transition()
+        .duration(200)
+        .style("opacity", 0.9);
+      tip.html("Average: " + s[key].average.toFixed(1) + " " + units)
+        .style("left", (d3.event.pageX) + "px")
+        .style("top", (d3.event.pageY - 28) + "px");
+    })
+    .on("mouseout", function (d) {
+      tip.transition()
+        .duration(500)
+        .style("opacity", 0);
+    });
 }
 
 // Margins.

@@ -1,3 +1,21 @@
 .axis path, .axis line {
     stroke: darkgrey;
 }
+
+.bar {
+    fill: #06295E;
+}
+
+.marker {
+    fill: #d52b30;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 2px;
+    background: #e1e8ef;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+}

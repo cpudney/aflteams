@@ -21,7 +21,7 @@ function binData(data, valueFn) {
 
   // Bin scale.
   var x = d3.scaleLinear().range([0, height]);
-  x.domain(d3.extent(data, valueFn)).nice();
+  x.domain(d3.extent(data, valueFn));
 
   // Counts scale.
   var y = d3.scaleLinear().range([0, width]);
@@ -55,7 +55,7 @@ function binData(data, valueFn) {
   });
 
   // Set counts domain.
-  y.domain([0, d3.max(teamMax, function (d) { return d.max; })]).nice();
+  y.domain([0, d3.max(teamMax, function (d) { return d.max; })]);
 
   return {
     'x': x,
@@ -137,14 +137,14 @@ function plotHistogram(key, units, scales, el) {
   el.append("g")
     .attr("class", "axis")
     .attr("transform", "translate(0,0)")
-    .call(d3.axisLeft(x).ticks(4));
+    .call(d3.axisLeft(x).ticks(4).tickSizeOuter(0));
 
   // Y-axis.
   var y = scales[key].y;
   el.append("g")
     .attr("class", "axis")
     .attr("transform", "translate(0,0)")
-    .call(d3.axisTop(y).ticks(4));
+    .call(d3.axisTop(y).ticks(3).tickSizeOuter(0));
 
   // Histogram bars.
   var bars = el.selectAll(".bar")

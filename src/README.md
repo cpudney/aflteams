@@ -1,8 +1,8 @@
 TO DO
-Fix colours
-Add team logos
-Add category axis labels
-Add mean/median mark
+Outlier binning
+Fix Port logo
+Get permission
+
 
 Attributions
 Data source

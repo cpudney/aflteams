@@ -188,9 +188,9 @@ function plotHistogram(key, units, scales, el) {
 }
 
 // Margins.
-var margin = { top: 100, right: 0, bottom: 40, left: 45 },
+var margin = { top: 80, right: 0, bottom: 30, left: 45 },
   width = 100 - margin.left - margin.right,
-  height = 200 - margin.bottom;
+  height = 180 - margin.bottom;
 
 // Colours - from colorgorical: http://vrl.cs.brown.edu/color
 var palette = ["rgb(180,221,212)", "rgb(12,95,49)", "rgb(82,220,188)", "rgb(159,33,8)", "rgb(44,228,98)", "rgb(157,13,108)", "rgb(163,215,30)", "rgb(62,60,141)", "rgb(135,169,253)", "rgb(16,75,109)", "rgb(251,93,231)", "rgb(39,15,226)", "rgb(217,146,226)", "rgb(20,143,174)", "rgb(246,187,134)", "rgb(124,68,14)", "rgb(244,212,3)", "rgb(255,77,130)"]

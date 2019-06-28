@@ -1,9 +1,3 @@
-TO DO
-Outlier binning
-Fix Port logo
-Get permission
+AFL player data: FootyWire.com
 
-
-Attributions
-Data source
-AFL Team logos
+© 2019 Copyright: Chris Pudney

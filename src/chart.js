@@ -121,10 +121,16 @@ function plotCharts(data, scales, id) {
   return g;
 }
 
+/**
+ * Sort the chart columns by team averages.
+ * 
+ * @param {Object} sel the root component for the charts.
+ * @param {String} key the attribute to sort on, e.g. 'age'
+ */
 function sortCharts(sel, key) {
   var w = width + margin.left + margin.right;
   sel.sort(function (a, b) {
-    return d3.ascending(b[key].average, a[key].average);
+    return d3.descending(b[key].average, a[key].average);
   })
     .transition().duration(500)
     .attr("transform", function (d, i) { return "translate(" + w * i + ",0)" });
@@ -192,12 +198,6 @@ var margin = { top: 80, right: 0, bottom: 30, left: 45 },
   width = 100 - margin.left - margin.right,
   height = 180 - margin.bottom;
 
-// Colours - from colorgorical: http://vrl.cs.brown.edu/color
-var palette = ["rgb(180,221,212)", "rgb(12,95,49)", "rgb(82,220,188)", "rgb(159,33,8)", "rgb(44,228,98)", "rgb(157,13,108)", "rgb(163,215,30)", "rgb(62,60,141)", "rgb(135,169,253)", "rgb(16,75,109)", "rgb(251,93,231)", "rgb(39,15,226)", "rgb(217,146,226)", "rgb(20,143,174)", "rgb(246,187,134)", "rgb(124,68,14)", "rgb(244,212,3)", "rgb(255,77,130)"]
-
-// Colour scale.
-var clr = d3.scaleOrdinal().range(palette);
-
 // Read the data set.
 d3.csv("players.csv", function (d) {
   // Process fields.
@@ -211,10 +211,6 @@ d3.csv("players.csv", function (d) {
 
 }).then(function (data) {
 
-  // Map team colours.
-  var keys = d3.map(data, function (d) { return d.Team; }).keys();
-  clr.domain(keys);
-
   // Bin data.
   var age = binData(data, function (d) { return d.Age; });
   var height = binData(data, function (d) { return d.Height; });
@@ -223,6 +219,7 @@ d3.csv("players.csv", function (d) {
 
   // Combine arrays.
   var teams = {};
+  var keys = d3.map(data, function (d) { return d.Team; }).keys();
   keys.forEach(function (el) { teams[el] = { key: el } });
   age.teams.forEach(function (el) {
     teams[el.key].age = {
